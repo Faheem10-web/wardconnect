@@ -1,0 +1,32 @@
+{
+  "name": "wardconnect",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
+    "bcryptjs": "^3.0.3",
+    "framer-motion": "^12.41.0",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^1.21.0",
+    "mongoose": "^9.7.2",
+    "next": "15.5.19",
+    "next-auth": "^4.24.14",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-hook-form": "^7.80.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.19",
+    "tailwindcss": "^4"
+  }
+}
