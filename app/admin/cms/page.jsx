@@ -117,44 +117,44 @@ export default function AdminCms() {
       )}
 
       {/* Tabs */}
-      <div className="flex border-b border-card-border/60 pb-1.5 gap-4">
+      <div className="flex border-b border-card-border/60 pb-1.5 gap-4 overflow-x-auto scrollbar-none whitespace-nowrap -mx-4 px-4 sm:mx-0 sm:px-0">
         <button
           onClick={() => setActiveTab('hero')}
-          className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
             activeTab === 'hero' 
               ? 'border-primary-500 text-primary-500' 
               : 'border-transparent text-text-body/60 hover:text-text-title'
           }`}
         >
-          <Layout className="w-4 h-4" />
+          <Layout className="w-4 h-4 shrink-0" />
           Hero Banner
         </button>
         <button
           onClick={() => setActiveTab('member')}
-          className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
             activeTab === 'member' 
               ? 'border-primary-500 text-primary-500' 
               : 'border-transparent text-text-body/60 hover:text-text-title'
           }`}
         >
-          <User className="w-4 h-4" />
+          <User className="w-4 h-4 shrink-0" />
           Ward Member Profile
         </button>
         <button
           onClick={() => setActiveTab('office')}
-          className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+          className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
             activeTab === 'office' 
               ? 'border-primary-500 text-primary-500' 
               : 'border-transparent text-text-body/60 hover:text-text-title'
           }`}
         >
-          <MapPin className="w-4 h-4" />
+          <MapPin className="w-4 h-4 shrink-0" />
           Office & Location
         </button>
       </div>
 
       {/* Settings Form */}
-      <form onSubmit={handleSubmit} className="bg-card-bg border border-card-border/80 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+      <form onSubmit={handleSubmit} className="bg-card-bg border border-card-border/80 rounded-2xl p-4 sm:p-8 shadow-sm space-y-6">
         
         {activeTab === 'hero' && (
           <div className="space-y-4">

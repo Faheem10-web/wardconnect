@@ -85,7 +85,7 @@ export default function AdminEvents() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Form column */}
-        <div className="bg-card-bg border border-card-border/80 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-card-bg border border-card-border/80 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
           <h3 className="font-display font-bold text-sm uppercase tracking-wider text-text-title flex items-center gap-1.5">
             <Plus className="w-4.5 h-4.5 text-primary-500" /> Schedule Event
           </h3>
@@ -172,7 +172,7 @@ export default function AdminEvents() {
                 </div>
               ) : (
                 events.map((event) => (
-                  <div key={event._id} className="bg-card-bg border border-card-border/80 rounded-2xl p-5 shadow-sm space-y-3">
+                  <div key={event._id} className="bg-card-bg border border-card-border/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
                     <div className="flex justify-between items-start">
                       <h4 className="font-bold text-text-title text-sm leading-normal">{event.title}</h4>
                       <span className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg shrink-0">

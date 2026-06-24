@@ -83,7 +83,7 @@ export default function AdminAnnouncements() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Form column */}
-        <div className="bg-card-bg border border-card-border/80 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-card-bg border border-card-border/80 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
           <h3 className="font-display font-bold text-sm uppercase tracking-wider text-text-title flex items-center gap-1.5">
             <Plus className="w-4.5 h-4.5 text-primary-500" /> Publish Announcement
           </h3>
@@ -169,7 +169,7 @@ export default function AdminAnnouncements() {
                   };
 
                   return (
-                    <div key={ann._id} className="bg-card-bg border border-card-border/80 rounded-2xl p-5 shadow-sm space-y-3">
+                    <div key={ann._id} className="bg-card-bg border border-card-border/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
                       <div className="flex justify-between items-center">
                         <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider ${badgeColors[ann.type] || badgeColors.general}`}>
                           {ann.type}

@@ -16,6 +16,7 @@ export default function AdminComplaints() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   
+  const [activeMobileTab, setActiveMobileTab] = useState('pending'); // 'pending' | 'progress' | 'completed'
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [newUpdateMessage, setNewUpdateMessage] = useState('');
@@ -194,8 +195,8 @@ export default function AdminComplaints() {
           <p className="text-xs text-text-body">Manage priority status updates, assignee mapping, and timeline updates.</p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <div className="relative flex-grow sm:flex-grow-0 sm:w-64">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-grow sm:w-64">
             <input
               type="text"
               placeholder="Search complaints..."
@@ -206,34 +207,71 @@ export default function AdminComplaints() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
 
-          <select
-            value={categoryFilter}
-            onChange={e => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-card-border bg-card-bg text-xs font-bold text-text-title outline-none focus:border-primary-500 cursor-pointer"
-          >
-            {categoriesList.map(cat => (
-              <option key={cat} value={cat}>{cat} Filter</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2 flex-grow sm:flex-grow-0">
+            <select
+              value={categoryFilter}
+              onChange={e => setCategoryFilter(e.target.value)}
+              className="flex-grow sm:flex-grow-0 px-3 py-2 rounded-xl border border-card-border bg-card-bg text-xs font-bold text-text-title outline-none focus:border-primary-500 cursor-pointer"
+            >
+              {categoriesList.map(cat => (
+                <option key={cat} value={cat}>{cat} Filter</option>
+              ))}
+            </select>
 
-          <button
-            onClick={fetchComplaints}
-            className="p-2 border border-card-border bg-card-bg rounded-xl text-text-title hover:bg-card-border/40 cursor-pointer"
-            title="Refresh Feed"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+            <button
+              onClick={fetchComplaints}
+              className="p-2 border border-card-border bg-card-bg rounded-xl text-text-title hover:bg-card-border/40 cursor-pointer shrink-0"
+              title="Refresh Feed"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
       {loading ? (
         <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary-500" /></div>
       ) : (
-        /* Kanban Columns */
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          
-          {/* Intake queue */}
-          <div className="bg-bg-base border border-card-border/50 rounded-2xl p-4 space-y-4">
+        <>
+          {/* Mobile Kanban Tab Controls */}
+          <div className="flex md:hidden bg-bg-base border border-card-border p-1 rounded-xl gap-1">
+            <button
+              onClick={() => setActiveMobileTab('pending')}
+              className={`flex-grow py-2.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors ${
+                activeMobileTab === 'pending'
+                  ? 'bg-white text-text-title shadow-xs border border-card-border/60'
+                  : 'text-text-body hover:text-text-title'
+              }`}
+            >
+              Pending ({pendingQueue.length})
+            </button>
+            <button
+              onClick={() => setActiveMobileTab('progress')}
+              className={`flex-grow py-2.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors ${
+                activeMobileTab === 'progress'
+                  ? 'bg-white text-text-title shadow-xs border border-card-border/60'
+                  : 'text-text-body hover:text-text-title'
+              }`}
+            >
+              In Progress ({progressQueue.length})
+            </button>
+            <button
+              onClick={() => setActiveMobileTab('completed')}
+              className={`flex-grow py-2.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors ${
+                activeMobileTab === 'completed'
+                  ? 'bg-white text-text-title shadow-xs border border-card-border/60'
+                  : 'text-text-body hover:text-text-title'
+              }`}
+            >
+              Completed ({completedQueue.length})
+            </button>
+          </div>
+
+          {/* Kanban Columns */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            
+            {/* Intake queue */}
+            <div className={`bg-bg-base border border-card-border/50 rounded-2xl p-4 space-y-4 ${activeMobileTab === 'pending' ? 'block' : 'hidden md:block'}`}>
             <div className="flex justify-between items-center pb-2 border-b border-card-border/40">
               <span className="text-xs font-black text-text-title uppercase tracking-widest flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-danger" />
@@ -268,8 +306,8 @@ export default function AdminComplaints() {
             </div>
           </div>
 
-          {/* In Resolution Queue */}
-          <div className="bg-bg-base border border-card-border/50 rounded-2xl p-4 space-y-4">
+            {/* In Resolution Queue */}
+            <div className={`bg-bg-base border border-card-border/50 rounded-2xl p-4 space-y-4 ${activeMobileTab === 'progress' ? 'block' : 'hidden md:block'}`}>
             <div className="flex justify-between items-center pb-2 border-b border-card-border/40">
               <span className="text-xs font-black text-text-title uppercase tracking-widest flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-warning animate-pulse" />
@@ -309,8 +347,8 @@ export default function AdminComplaints() {
             </div>
           </div>
 
-          {/* Resolved/Closed Queue */}
-          <div className="bg-bg-base border border-card-border/50 rounded-2xl p-4 space-y-4">
+            {/* Resolved/Closed Queue */}
+            <div className={`bg-bg-base border border-card-border/50 rounded-2xl p-4 space-y-4 ${activeMobileTab === 'completed' ? 'block' : 'hidden md:block'}`}>
             <div className="flex justify-between items-center pb-2 border-b border-card-border/40">
               <span className="text-xs font-black text-text-title uppercase tracking-widest flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-success" />
@@ -346,6 +384,7 @@ export default function AdminComplaints() {
           </div>
 
         </div>
+        </>
       )}
 
       {/* Slide-out Drawer details panel */}
@@ -367,20 +406,20 @@ export default function AdminComplaints() {
               </div>
               
               {/* Content body */}
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-6 space-y-6">
                 
                 {/* Reporter / Category grids */}
-                <div className="grid grid-cols-2 gap-4 bg-bg-base p-4 border border-card-border rounded-2xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-bg-base p-4 border border-card-border rounded-2xl">
                   <div className="space-y-1">
                     <span className="text-[9px] text-text-body/60 font-bold uppercase tracking-widest block">Reporter Details</span>
                     <p className="text-xs font-bold text-text-title">{selectedComplaint.name}</p>
                     <p className="text-[10px] text-text-body/80">{selectedComplaint.email}</p>
                     <p className="text-[10px] text-text-body/80">{selectedComplaint.phone}</p>
                   </div>
-                  <div className="space-y-1 text-right">
+                  <div className="space-y-1 sm:text-right">
                     <span className="text-[9px] text-text-body/60 font-bold uppercase tracking-widest block">Location & Category</span>
                     <p className="text-xs font-bold text-text-title">{selectedComplaint.category}</p>
-                    <p className="text-[10px] text-text-body/80 flex items-center justify-end gap-1.5"><MapPin className="w-3.5 h-3.5 text-slate-400" /> {selectedComplaint.location}</p>
+                    <p className="text-[10px] text-text-body/80 flex items-center sm:justify-end gap-1.5"><MapPin className="w-3.5 h-3.5 text-slate-400" /> {selectedComplaint.location}</p>
                   </div>
                 </div>
 
@@ -400,7 +439,7 @@ export default function AdminComplaints() {
                   </div>
                 )}
 
-                {/* Priority updates */}
+                 {/* Priority updates */}
                 <div className="space-y-3 border-t border-card-border/50 pt-5">
                   <h4 className="font-bold text-xs uppercase tracking-wider text-text-title">Priority Level</h4>
                   <div className="flex gap-2 flex-wrap">
@@ -409,7 +448,7 @@ export default function AdminComplaints() {
                         key={opt}
                         onClick={() => handlePriorityChange(opt)}
                         disabled={isUpdating}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
+                        className={`px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${
                           priority === opt
                             ? 'bg-primary-500 border-primary-500 text-white shadow-sm'
                             : 'bg-card-bg text-text-body border-card-border hover:bg-card-border/30'
@@ -432,7 +471,7 @@ export default function AdminComplaints() {
                           key={step}
                           onClick={() => handleStatusChange(step)}
                           disabled={isUpdating}
-                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                          className={`px-3 py-2 sm:px-3 sm:py-1.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
                             isActive
                               ? 'bg-primary-600 border-primary-600 text-white shadow-sm'
                               : 'bg-card-bg text-text-body border-card-border hover:bg-card-border/30'

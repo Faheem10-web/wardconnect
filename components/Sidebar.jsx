@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, FileText, LogOut, Building2, User, Users, 
-  Megaphone, Calendar, ShieldCheck, Database 
+  Megaphone, Calendar, ShieldCheck, Database, X 
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const pathname = usePathname();
   const router = useRouter();
   const [adminName, setAdminName] = useState('Admin');
@@ -84,16 +84,35 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-card-border text-text-body min-h-screen flex flex-col shrink-0 shadow-sm">
-      
-      <div className="h-16 flex items-center px-6 border-b border-card-border shrink-0 gap-2">
-        <div className="p-1.5 bg-primary-600 rounded-lg">
-          <Building2 className="h-5 w-5 text-white" />
+    <>
+      {/* Mobile backdrop overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-gray-900/40 backdrop-blur-xs z-40 md:hidden transition-all duration-300 animate-in fade-in"
+          onClick={onClose}
+        />
+      )}
+
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-card-border text-text-body flex flex-col shrink-0 shadow-lg md:shadow-sm transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        
+        <div className="h-16 flex items-center px-6 border-b border-card-border shrink-0 gap-2 justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-primary-600 rounded-lg">
+              <Building2 className="h-5 w-5 text-white" />
+            </div>
+            <span className="font-display font-bold text-lg tracking-tight text-text-title">
+              Ward<span className="text-primary-600">Admin</span>
+            </span>
+          </div>
+          
+          <button 
+            onClick={onClose}
+            className="p-1.5 text-text-body hover:text-text-title md:hidden rounded-lg hover:bg-bg-base transition-colors"
+            aria-label="Close sidebar menu"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <span className="font-display font-bold text-lg tracking-tight text-text-title">
-          Ward<span className="text-primary-600">Admin</span>
-        </span>
-      </div>
 
       <div className="p-6 border-b border-card-border flex items-center gap-3 shrink-0">
         <div className="p-2 bg-primary-50 text-primary-700 rounded-xl relative">
@@ -117,6 +136,7 @@ export default function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={onClose}
               className={`flex items-center gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-wider rounded-xl transition-all duration-200 ${
                 isActive
                   ? 'bg-primary-600 text-white shadow-md shadow-primary-600/15'
@@ -132,7 +152,10 @@ export default function Sidebar() {
 
       <div className="p-4 border-t border-card-border shrink-0">
         <button
-          onClick={handleLogout}
+          onClick={() => {
+            onClose?.();
+            handleLogout();
+          }}
           className="flex w-full items-center gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-wider rounded-xl hover:bg-rose-50 hover:text-rose-600 text-text-body transition-all duration-200"
         >
           <LogOut className="w-4 h-4 shrink-0" />
@@ -140,5 +163,6 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+  </>
   );
 }

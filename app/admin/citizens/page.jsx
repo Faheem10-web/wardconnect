@@ -67,53 +67,87 @@ export default function AdminCitizens() {
             <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-bg-base border-b border-card-border text-text-body font-bold uppercase tracking-wider text-xs">
-                <tr>
-                  <th className="px-6 py-4">User Name</th>
-                  <th className="px-6 py-4">Email Address</th>
-                  <th className="px-6 py-4">Mobile Number</th>
-                  <th className="px-6 py-4">System Role</th>
-                  <th className="px-6 py-4">Registered On</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-card-border/30">
-                {filtered.map(c => (
-                  <tr key={c._id} className="hover:bg-card-border/10 transition-colors">
-                    <td className="px-6 py-4 font-bold text-text-title flex items-center gap-2">
-                      <div className="w-7 h-7 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-inner shrink-0">
+          <>
+            {/* Widescreen Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-bg-base border-b border-card-border text-text-body font-bold uppercase tracking-wider text-xs">
+                  <tr>
+                    <th className="px-6 py-4">User Name</th>
+                    <th className="px-6 py-4">Email Address</th>
+                    <th className="px-6 py-4">Mobile Number</th>
+                    <th className="px-6 py-4">System Role</th>
+                    <th className="px-6 py-4">Registered On</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-card-border/30">
+                  {filtered.map(c => (
+                    <tr key={c._id} className="hover:bg-card-border/10 transition-colors">
+                      <td className="px-6 py-4 font-bold text-text-title flex items-center gap-2">
+                        <div className="w-7 h-7 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-inner shrink-0">
+                          {c.name?.charAt(0)}
+                        </div>
+                        {c.name}
+                      </td>
+                      <td className="px-6 py-4 text-text-body font-medium">
+                        <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {c.email}</span>
+                      </td>
+                      <td className="px-6 py-4 text-text-body font-bold">
+                        <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {c.phone || 'N/A'}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1 bg-primary-50 text-primary-600 px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-primary-100 uppercase tracking-widest">
+                          <ShieldCheck className="w-3 h-3" />
+                          {c.role || 'citizen'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-text-body/60 font-semibold">
+                        <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'N/A'}</span>
+                      </td>
+                    </tr>
+                  ))}
+                  {filtered.length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="text-center py-12 text-xs text-text-body/60 italic font-semibold">
+                        No citizens matching search.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile/Tablet Card View */}
+            <div className="block md:hidden divide-y divide-card-border/30">
+              {filtered.map(c => (
+                <div key={c._id} className="p-4 flex flex-col gap-3 hover:bg-card-border/5 transition-colors">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-inner shrink-0">
                         {c.name?.charAt(0)}
                       </div>
-                      {c.name}
-                    </td>
-                    <td className="px-6 py-4 text-text-body font-medium">
-                      <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {c.email}</span>
-                    </td>
-                    <td className="px-6 py-4 text-text-body font-bold">
-                      <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {c.phone || 'N/A'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1 bg-primary-50 text-primary-600 px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-primary-100 uppercase tracking-widest">
-                        <ShieldCheck className="w-3 h-3" />
-                        {c.role || 'citizen'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-text-body/60 font-semibold">
-                      <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'N/A'}</span>
-                    </td>
-                  </tr>
-                ))}
-                {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan="5" className="text-center py-12 text-xs text-text-body/60 italic font-semibold">
-                      No citizens matching search.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      <span className="font-bold text-sm text-text-title truncate">{c.name}</span>
+                    </div>
+                    <span className="inline-flex items-center gap-1 bg-primary-50 text-primary-600 px-2.5 py-0.5 rounded-full text-[9px] font-bold border border-primary-100 uppercase tracking-widest shrink-0">
+                      <ShieldCheck className="w-3 h-3" />
+                      {c.role || 'citizen'}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-1.5 text-xs text-text-body font-semibold pl-1">
+                    <p className="flex items-center gap-2"><Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {c.email}</p>
+                    <p className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {c.phone || 'N/A'}</p>
+                    <p className="flex items-center gap-2 text-text-body/65"><Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" /> Registered: {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'N/A'}</p>
+                  </div>
+                </div>
+              ))}
+              {filtered.length === 0 && (
+                <div className="text-center py-12 text-xs text-text-body/60 italic font-semibold">
+                  No citizens matching search.
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

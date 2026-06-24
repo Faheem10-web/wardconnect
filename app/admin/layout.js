@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Menu } from 'lucide-react';
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
@@ -44,6 +44,8 @@ export default function AdminLayout({ children }) {
     checkAuth();
   }, [pathname, isLoginPage, router]);
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   if (isLoginPage) {
     return <>{children}</>;
   }
@@ -64,19 +66,28 @@ export default function AdminLayout({ children }) {
   }
 
   return (
-    <div className="flex bg-bg-base min-h-screen text-text-body">
-      <Sidebar />
+    <div className="flex bg-bg-base min-h-screen text-text-body relative overflow-x-hidden">
+      <Sidebar isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
       <div className="flex-grow flex flex-col min-w-0">
-        <header className="h-16 bg-white border-b border-card-border flex items-center justify-between px-8 shrink-0">
-          <h1 className="font-display font-bold text-sm uppercase tracking-wider text-text-title">
-            Control Panel
-          </h1>
+        <header className="h-16 bg-white border-b border-card-border flex items-center justify-between px-4 sm:px-8 shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 -ml-2 text-text-body hover:text-text-title md:hidden rounded-xl hover:bg-bg-base transition-colors"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h1 className="font-display font-bold text-sm uppercase tracking-wider text-text-title">
+              Control Panel
+            </h1>
+          </div>
           <div className="flex items-center gap-2 text-[10px] font-bold text-text-body uppercase tracking-wider bg-bg-base border border-card-border rounded-lg px-3 py-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Live Connection
           </div>
         </header>
-        <main className="flex-grow p-6 sm:p-8 overflow-y-auto">
+        <main className="flex-grow p-4 sm:p-8 overflow-y-auto">
           {children}
         </main>
       </div>

@@ -17,13 +17,13 @@ function DashboardCard({ title, value, icon: Icon, color }) {
   };
 
   return (
-    <div className="bg-card-bg border border-card-border/80 rounded-[20px] p-6 shadow-sm flex items-center gap-4 text-text-body">
-      <div className={`p-4 rounded-xl border shrink-0 ${colorMap[color] || colorMap.primary}`}>
-        <Icon className="w-6 h-6" />
+    <div className="bg-card-bg border border-card-border/80 rounded-[20px] p-4 sm:p-6 shadow-sm flex items-center gap-3 sm:gap-4 text-text-body">
+      <div className={`p-3 sm:p-4 rounded-xl border shrink-0 ${colorMap[color] || colorMap.primary}`}>
+        <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
       </div>
       <div>
         <p className="text-[10px] font-bold text-text-body/60 uppercase tracking-widest">{title}</p>
-        <p className="text-2xl font-black text-text-title mt-1">{value}</p>
+        <p className="text-xl sm:text-2xl font-black text-text-title mt-0.5 sm:mt-1">{value}</p>
       </div>
     </div>
   );
@@ -213,8 +213,8 @@ export default function AdminDashboard() {
             Inbound Inflow by Category
           </h3>
           
-          <div className="relative pt-4 h-64 flex flex-col justify-between">
-            <div className="w-full h-48 flex items-end justify-around border-b border-card-border/60 pb-1">
+          <div className="relative pt-4 h-64 flex flex-col justify-between overflow-x-auto scrollbar-none">
+            <div className="min-w-[360px] w-full h-48 flex items-end justify-around border-b border-card-border/60 pb-1">
               {categoryStats.map((item, idx) => {
                 const totalCount = stats.total || 1;
                 const percentage = Math.round((item.count / totalCount) * 100);
@@ -236,7 +236,7 @@ export default function AdminDashboard() {
                 );
               })}
             </div>
-            <p className="text-[10px] text-text-body/60 leading-normal text-center italic">Hover columns to view percentages. Statistics dynamically generated from real database logs.</p>
+            <p className="text-[10px] text-text-body/60 leading-normal text-center italic mt-2">Hover columns to view percentages. Statistics dynamically generated from real database logs.</p>
           </div>
         </div>
 
@@ -266,8 +266,8 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="flex justify-around w-full text-[9px] font-bold uppercase tracking-wider text-text-body/80">
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-danger shrink-0 animate-ping" /> Pending ({stats.pending})</span>
+            <div className="flex flex-wrap justify-center gap-3 w-full text-[9px] font-bold uppercase tracking-wider text-text-body/80 px-2">
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-danger shrink-0 animate-pulse" /> Pending ({stats.pending})</span>
               <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-warning shrink-0" /> Inflow ({stats.inProgress})</span>
               <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-success shrink-0" /> Done ({stats.completed})</span>
             </div>
@@ -289,7 +289,8 @@ export default function AdminDashboard() {
             </span>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop View Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead>
                 <tr className="border-b border-card-border/60 text-slate-400 font-bold uppercase tracking-wider text-xs">
@@ -332,6 +333,46 @@ export default function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile view cards (under md) */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {allUsers.map((user) => (
+              <div key={user._id} className="bg-bg-base border border-card-border/50 rounded-2xl p-4 space-y-3 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center font-bold text-xs uppercase shadow-inner shrink-0">
+                    {user.name?.charAt(0)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm text-text-title truncate">{user.name}</p>
+                    <p className="text-xs text-text-body truncate mt-0.5">{user.email}</p>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center pt-2.5 border-t border-card-border/30 gap-2">
+                  <div>
+                    <span className="text-[8px] text-text-body/60 font-bold uppercase tracking-wider block mb-1">Current Role</span>
+                    <span className="text-[10px] font-bold uppercase bg-white text-text-body px-2.5 py-0.5 rounded-full border border-card-border">
+                      {user.role || 'citizen'}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[8px] text-text-body/60 font-bold uppercase tracking-wider block mb-1">Change Role</span>
+                    <select
+                      disabled={isSuperLoading}
+                      value={user.role || 'citizen'}
+                      onChange={(e) => handleRoleChange(user._id, e.target.value)}
+                      className="px-2 py-1 rounded-lg border border-card-border bg-white text-xs font-bold text-text-title outline-none focus:border-primary-500 cursor-pointer"
+                    >
+                      <option value="citizen">Citizen</option>
+                      <option value="ward_member">Ward Member</option>
+                      <option value="staff">Staff</option>
+                      <option value="admin">Admin</option>
+                      <option value="super_admin">Super Admin</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -385,7 +426,8 @@ export default function AdminDashboard() {
           </Link>
         </div>
         
-        <div className="overflow-x-auto">
+        {/* Desktop View Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="border-b border-card-border/60 text-slate-400 font-bold uppercase tracking-wider text-xs">
@@ -415,6 +457,27 @@ export default function AdminDashboard() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View Cards */}
+        <div className="block md:hidden space-y-3">
+          {filteredComplaints.map((c) => (
+            <div key={c._id} className="bg-bg-base border border-card-border/50 rounded-xl p-4 space-y-2.5 shadow-xs">
+              <div className="flex justify-between items-start gap-2.5">
+                <p className="font-bold text-xs text-text-title leading-relaxed line-clamp-2">{c.title}</p>
+                <div className="shrink-0">
+                  <StatusBadge status={c.status} />
+                </div>
+              </div>
+              <div className="flex justify-between items-center text-[10px] text-text-body pt-2 border-t border-card-border/30 font-semibold uppercase tracking-wider">
+                <span>By: {c.name}</span>
+                <span className="px-2 py-0.5 bg-white border border-card-border rounded text-[8px] font-bold text-text-body">{c.category}</span>
+              </div>
+            </div>
+          ))}
+          {filteredComplaints.length === 0 && (
+            <p className="text-center py-8 text-xs text-text-body/60 italic font-semibold">No complaints registered in queue.</p>
+          )}
         </div>
       </div>
     </div>
