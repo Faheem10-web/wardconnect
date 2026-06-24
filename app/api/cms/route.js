@@ -50,7 +50,7 @@ export async function PUT(req) {
     }
 
     const fields = [
-      'heroTitleEn', 'heroTitleMl', 'heroDescriptionEn', 'heroDescriptionMl', 'heroImage',
+      'heroTitleEn', 'heroTitleMl', 'heroDescriptionEn', 'heroDescriptionMl', 'heroImage', 'heroUploadedImage',
       'wardMemberPhoto', 'wardMemberName', 'wardMemberRoleEn', 'wardMemberRoleMl',
       'wardMemberQuoteEn', 'wardMemberQuoteMl', 'wardMemberPhone', 'wardMemberEmail',
       'wardNumber', 'locationNameEn', 'locationNameMl', 'officeAddressEn', 'officeAddressMl',

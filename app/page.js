@@ -110,6 +110,7 @@ export default function Home() {
     heroDescriptionEn: 'WardConnect brings modern SaaS-level issue tracking to civic governance. File complaints, follow resolution milestones in real-time, and attend community events.',
     heroDescriptionMl: 'വാർഡ് കണക്ട് നിങ്ങളുടെ വാർഡിലെ പ്രശ്നങ്ങൾ വേഗത്തിൽ പരിഹരിക്കാൻ സഹായിക്കുന്നു. പരാതികൾ സമർപ്പിക്കുക, അവയുടെ പുരോഗതി തത്സമയം നിരീക്ഷിക്കുക.',
     heroImage: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=800',
+    heroUploadedImage: '',
     wardMemberPhoto: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400',
     wardMemberName: 'Marcus Vance',
     wardMemberRoleEn: 'Ward Member, Ward 4 Representative',
@@ -373,7 +374,7 @@ export default function Home() {
               className="relative aspect-video sm:aspect-[4/3] rounded-2xl overflow-hidden border border-card-border shadow-lg"
             >
               <img 
-                src={cms.heroImage} 
+                src={cms.heroUploadedImage || cms.heroImage} 
                 alt="Neighborhood improvement visual" 
                 className="w-full h-full object-cover"
               />

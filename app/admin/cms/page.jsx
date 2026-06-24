@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Database, Save, Layout, User, Phone, MapPin, CheckCircle, AlertCircle } from 'lucide-react';
+import { Loader2, Database, Save, Layout, User, Phone, MapPin, CheckCircle, AlertCircle, UploadCloud, Trash2 } from 'lucide-react';
 
 export default function AdminCms() {
   const router = useRouter();
@@ -18,6 +18,7 @@ export default function AdminCms() {
     heroDescriptionEn: '',
     heroDescriptionMl: '',
     heroImage: '',
+    heroUploadedImage: '',
     wardMemberPhoto: '',
     wardMemberName: '',
     wardMemberRoleEn: '',
@@ -58,6 +59,40 @@ export default function AdminCms() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleUploadFile = async (file) => {
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setMessage({ text: 'Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.', type: 'error' });
+      return;
+    }
+
+    setSaving(true);
+    setMessage({ text: 'Uploading image to local server...', type: 'info' });
+
+    try {
+      const data = new FormData();
+      data.append('file', file);
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: data
+      });
+
+      const resData = await res.json();
+      if (res.ok && resData.success) {
+        setFormData(prev => ({ ...prev, heroUploadedImage: resData.url }));
+        setMessage({ text: 'Image uploaded successfully! Remember to Save Settings to persist changes.', type: 'success' });
+      } else {
+        throw new Error(resData.error || 'Upload failed');
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage({ text: `Image upload failed: ${err.message}`, type: 'error' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -109,7 +144,9 @@ export default function AdminCms() {
         <div className={`p-4 rounded-xl border flex items-start gap-2 text-xs font-semibold ${
           message.type === 'success' 
             ? 'bg-success/10 border-success/20 text-success' 
-            : 'bg-danger/10 border-danger/20 text-danger'
+            : message.type === 'info'
+              ? 'bg-blue-50 border-blue-200 text-blue-700 animate-pulse'
+              : 'bg-danger/10 border-danger/20 text-danger'
         }`}>
           {message.type === 'success' ? <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" /> : <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />}
           <span>{message.text}</span>
@@ -205,16 +242,103 @@ export default function AdminCms() {
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-text-title">Hero Image URL</label>
-              <input
-                type="text"
-                name="heroImage"
-                value={formData.heroImage}
-                onChange={handleChange}
-                placeholder="https://unsplash.com/..."
-                className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500"
-              />
+            {/* Responsive columns for URL option vs local upload option */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-card-border pt-4">
+              {/* Option A: Image URL */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-text-title block">Option A: Hero Image URL (Fallback)</label>
+                <input
+                  type="text"
+                  name="heroImage"
+                  value={formData.heroImage}
+                  onChange={handleChange}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500"
+                />
+                <p className="text-[10px] text-text-body/60 italic leading-relaxed">
+                  External link used as a fallback if no custom image is uploaded.
+                </p>
+              </div>
+
+              {/* Option B: Local File Upload with Drag & Drop */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-text-title block">Option B: Upload Custom Hero Image</label>
+                
+                {formData.heroUploadedImage ? (
+                  <div className="border border-card-border rounded-xl p-3 bg-bg-base space-y-3 relative shadow-xs">
+                    <div className="aspect-video w-full rounded-lg overflow-hidden border border-card-border relative group bg-white">
+                      <img 
+                        src={formData.heroUploadedImage} 
+                        alt="Hero Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('hero-file-selector').click()}
+                          className="px-3 py-1.5 bg-white text-text-title rounded-lg text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
+                        >
+                          Replace Image
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                        <CheckCircle className="w-3.5 h-3.5" /> Upload active (takes priority)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, heroUploadedImage: '' }));
+                        }}
+                        className="text-[10px] font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 transition-colors animate-pulse"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Remove Image
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div 
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.add('border-primary-500', 'bg-primary-50/10');
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-primary-500', 'bg-primary-50/10');
+                    }}
+                    onDrop={async (e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-primary-500', 'bg-primary-50/10');
+                      const file = e.dataTransfer.files[0];
+                      if (file) {
+                        await handleUploadFile(file);
+                      }
+                    }}
+                    className="border-2 border-dashed border-card-border rounded-xl p-6 flex flex-col items-center justify-center text-center bg-bg-base hover:bg-card-border/30 transition-all relative min-h-[140px] cursor-pointer"
+                  >
+                    <input 
+                      type="file"
+                      id="hero-file-selector"
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          await handleUploadFile(file);
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="space-y-2 pointer-events-none flex flex-col items-center">
+                      <UploadCloud className="w-7 h-7 text-text-body/50" />
+                      <div>
+                        <p className="text-xs font-bold text-text-title">Drag & drop or click to upload</p>
+                        <p className="text-[10px] text-text-body/60 mt-0.5">Supports PNG, JPG, JPEG, or WEBP formats</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

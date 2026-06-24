@@ -26,6 +26,10 @@ const CmsSchema = new mongoose.Schema({
     type: String,
     default: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=800'
   },
+  heroUploadedImage: {
+    type: String,
+    default: ''
+  },
   wardMemberPhoto: {
     type: String,
     default: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400'
