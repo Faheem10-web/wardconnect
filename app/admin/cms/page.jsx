@@ -19,6 +19,8 @@ export default function AdminCms() {
     heroDescriptionMl: '',
     heroImage: '',
     heroUploadedImage: '',
+    heroBanners: [],
+    autoSlideDuration: 5,
     wardMemberPhoto: '',
     wardMemberName: '',
     wardMemberRoleEn: '',
@@ -93,6 +95,80 @@ export default function AdminCms() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleUploadBannerFile = async (bannerId, file) => {
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setMessage({ text: 'Invalid file format. Please upload a JPG, JPEG, PNG, or WEBP image.', type: 'error' });
+      return;
+    }
+
+    setSaving(true);
+    setMessage({ text: 'Uploading image to local server...', type: 'info' });
+
+    try {
+      const data = new FormData();
+      data.append('file', file);
+
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: data
+      });
+
+      const resData = await res.json();
+      if (res.ok && resData.success) {
+        updateBannerField(bannerId, 'uploadedImage', resData.url);
+        setMessage({ text: 'Banner image uploaded successfully! Save Settings to apply.', type: 'success' });
+      } else {
+        throw new Error(resData.error || 'Upload failed');
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage({ text: `Image upload failed: ${err.message}`, type: 'error' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateBannerField = (bannerId, fieldName, value) => {
+    setFormData(prev => ({
+      ...prev,
+      heroBanners: (prev.heroBanners || []).map(b => b.id === bannerId ? { ...b, [fieldName]: value } : b)
+    }));
+  };
+
+  const addBanner = () => {
+    const banners = formData.heroBanners || [];
+    if (banners.length >= 5) {
+      setMessage({ text: 'You can only configure up to 5 slider banners.', type: 'error' });
+      return;
+    }
+
+    const newBanner = {
+      id: `banner-${Date.now()}`,
+      titleEn: '',
+      titleMl: '',
+      descriptionEn: '',
+      descriptionMl: '',
+      image: '',
+      uploadedImage: '',
+      order: banners.length,
+      isActive: true
+    };
+
+    setFormData(prev => ({
+      ...prev,
+      heroBanners: [...banners, newBanner]
+    }));
+  };
+
+  const removeBanner = (bannerId) => {
+    if (!confirm('Are you sure you want to remove this banner?')) return;
+    setFormData(prev => ({
+      ...prev,
+      heroBanners: (prev.heroBanners || []).filter(b => b.id !== bannerId)
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -194,152 +270,324 @@ export default function AdminCms() {
       <form onSubmit={handleSubmit} className="bg-card-bg border border-card-border/80 rounded-2xl p-4 sm:p-8 shadow-sm space-y-6">
         
         {activeTab === 'hero' && (
-          <div className="space-y-4">
-            <h3 className="font-display font-bold text-sm text-text-title uppercase tracking-wider border-b border-card-border pb-2">Hero Welcome Content</h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-text-title">Hero Title (English)</label>
-                <input
-                  type="text"
-                  name="heroTitleEn"
-                  value={formData.heroTitleEn}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500"
-                />
+          <div className="space-y-6">
+            {/* 1. Auto Slide Duration Control */}
+            <div className="bg-bg-base p-4 border border-card-border rounded-xl flex items-center justify-between gap-4">
+              <div>
+                <h4 className="text-xs font-bold text-text-title">Auto Slide Duration</h4>
+                <p className="text-[10px] text-text-body/65 mt-0.5">Control how fast the homepage slider switches active banners.</p>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-text-title">Hero Title (Malayalam)</label>
-                <input
-                  type="text"
-                  name="heroTitleMl"
-                  value={formData.heroTitleMl}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-text-title">Hero Description (English)</label>
-              <textarea
-                name="heroDescriptionEn"
-                value={formData.heroDescriptionEn}
+              <select
+                name="autoSlideDuration"
+                value={formData.autoSlideDuration || 5}
                 onChange={handleChange}
-                rows={3}
-                className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500 resize-none"
-              />
+                className="px-3 py-2 rounded-lg border border-card-border bg-white text-xs font-bold text-text-title cursor-pointer outline-none focus:border-primary-500"
+              >
+                <option value={3}>3 Seconds</option>
+                <option value={5}>5 Seconds</option>
+                <option value={8}>8 Seconds</option>
+                <option value={10}>10 Seconds</option>
+              </select>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-text-title">Hero Description (Malayalam)</label>
-              <textarea
-                name="heroDescriptionMl"
-                value={formData.heroDescriptionMl}
-                onChange={handleChange}
-                rows={3}
-                className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500 resize-none"
-              />
-            </div>
-
-            {/* Responsive columns for URL option vs local upload option */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-card-border pt-4">
-              {/* Option A: Image URL */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-text-title block">Option A: Hero Image URL (Fallback)</label>
-                <input
-                  type="text"
-                  name="heroImage"
-                  value={formData.heroImage}
-                  onChange={handleChange}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500"
-                />
-                <p className="text-[10px] text-text-body/60 italic leading-relaxed">
-                  External link used as a fallback if no custom image is uploaded.
-                </p>
-              </div>
-
-              {/* Option B: Local File Upload with Drag & Drop */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-text-title block">Option B: Upload Custom Hero Image</label>
-                
-                {formData.heroUploadedImage ? (
-                  <div className="border border-card-border rounded-xl p-3 bg-bg-base space-y-3 relative shadow-xs">
-                    <div className="aspect-video w-full rounded-lg overflow-hidden border border-card-border relative group bg-white">
-                      <img 
-                        src={formData.heroUploadedImage} 
-                        alt="Hero Preview" 
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button
-                          type="button"
-                          onClick={() => document.getElementById('hero-file-selector').click()}
-                          className="px-3 py-1.5 bg-white text-text-title rounded-lg text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
-                        >
-                          Replace Image
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-                        <CheckCircle className="w-3.5 h-3.5" /> Upload active (takes priority)
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData(prev => ({ ...prev, heroUploadedImage: '' }));
-                        }}
-                        className="text-[10px] font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 transition-colors animate-pulse"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Remove Image
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div 
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.currentTarget.classList.add('border-primary-500', 'bg-primary-50/10');
-                    }}
-                    onDragLeave={(e) => {
-                      e.preventDefault();
-                      e.currentTarget.classList.remove('border-primary-500', 'bg-primary-50/10');
-                    }}
-                    onDrop={async (e) => {
-                      e.preventDefault();
-                      e.currentTarget.classList.remove('border-primary-500', 'bg-primary-50/10');
-                      const file = e.dataTransfer.files[0];
-                      if (file) {
-                        await handleUploadFile(file);
-                      }
-                    }}
-                    className="border-2 border-dashed border-card-border rounded-xl p-6 flex flex-col items-center justify-center text-center bg-bg-base hover:bg-card-border/30 transition-all relative min-h-[140px] cursor-pointer"
-                  >
-                    <input 
-                      type="file"
-                      id="hero-file-selector"
-                      accept="image/png, image/jpeg, image/jpg, image/webp"
-                      onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          await handleUploadFile(file);
-                        }
-                      }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            {/* 2. Fallback configuration details */}
+            <details className="bg-bg-base/20 border border-card-border rounded-xl overflow-hidden group">
+              <summary className="p-4 cursor-pointer font-bold text-xs text-text-title flex justify-between items-center hover:bg-bg-base/40">
+                <span>Static Fallback Banner Configuration</span>
+                <span className="text-[10px] font-semibold text-primary-600 group-open:hidden">Show fallback details</span>
+                <span className="text-[10px] font-semibold text-primary-600 hidden group-open:inline">Hide fallback details</span>
+              </summary>
+              <div className="p-4 border-t border-card-border space-y-4 bg-white">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-text-title">Hero Title (English)</label>
+                    <input
+                      type="text"
+                      name="heroTitleEn"
+                      value={formData.heroTitleEn}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500"
                     />
-                    <div className="space-y-2 pointer-events-none flex flex-col items-center">
-                      <UploadCloud className="w-7 h-7 text-text-body/50" />
-                      <div>
-                        <p className="text-xs font-bold text-text-title">Drag & drop or click to upload</p>
-                        <p className="text-[10px] text-text-body/60 mt-0.5">Supports PNG, JPG, JPEG, or WEBP formats</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-text-title">Hero Title (Malayalam)</label>
+                    <input
+                      type="text"
+                      name="heroTitleMl"
+                      value={formData.heroTitleMl}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-text-title">Hero Description (English)</label>
+                  <textarea
+                    name="heroDescriptionEn"
+                    value={formData.heroDescriptionEn}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500 resize-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-text-title">Hero Description (Malayalam)</label>
+                  <textarea
+                    name="heroDescriptionMl"
+                    value={formData.heroDescriptionMl}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500 resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-card-border pt-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-text-title block">Option A: Hero Image URL</label>
+                    <input
+                      type="text"
+                      name="heroImage"
+                      value={formData.heroImage}
+                      onChange={handleChange}
+                      placeholder="https://images.unsplash.com/..."
+                      className="w-full px-4 py-2.5 rounded-lg border border-card-border bg-bg-base text-text-title text-sm outline-none focus:border-primary-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-text-title block">Option B: Upload Custom Hero Image</label>
+                    {formData.heroUploadedImage ? (
+                      <div className="border border-card-border rounded-xl p-3 bg-bg-base space-y-3">
+                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-card-border relative group bg-white">
+                          <img src={formData.heroUploadedImage} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Upload active</span>
+                          <button type="button" onClick={() => setFormData(p => ({ ...p, heroUploadedImage: '' }))} className="text-[10px] font-bold text-rose-600">Remove Image</button>
+                        </div>
                       </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-card-border rounded-xl p-6 flex flex-col items-center justify-center text-center bg-bg-base min-h-[140px] relative">
+                        <input type="file" onChange={e => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => setFormData(p => ({ ...p, heroUploadedImage: reader.result }));
+                            reader.readAsDataURL(file);
+                          }
+                        }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                        <UploadCloud className="w-6 h-6 text-text-body/50 mb-1" />
+                        <p className="text-xs font-bold text-text-title">Click to upload image</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            {/* 3. Hero Banners Management System */}
+            <div className="space-y-4 pt-4 border-t border-card-border/60">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="font-display font-extrabold text-base text-text-title">Slider Banners Configuration</h3>
+                  <p className="text-[10px] text-text-body/60 mt-0.5">Manage up to 5 slider banners for the dynamic homepage showcase.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={addBanner}
+                  disabled={(formData.heroBanners || []).length >= 5}
+                  className="w-full sm:w-auto px-4 py-2 bg-primary-600 text-white rounded-xl text-xs font-bold hover:bg-primary-700 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 transition-all cursor-pointer"
+                >
+                  + Add Slider Banner ({(formData.heroBanners || []).length}/5)
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {(formData.heroBanners || [])
+                  .sort((a, b) => (a.order || 0) - (b.order || 0))
+                  .map((banner, index) => (
+                    <div key={banner.id} className="border border-card-border rounded-2xl bg-white p-4 sm:p-5 space-y-4 shadow-sm">
+                      {/* Banner Header Controls */}
+                      <div className="flex flex-wrap items-center justify-between border-b border-card-border pb-3 gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-6 h-6 bg-slate-100 text-slate-700 rounded-full flex items-center justify-center font-bold text-xs">
+                            {index + 1}
+                          </span>
+                          <span className="font-bold text-xs sm:text-sm text-text-title">
+                            {banner.titleEn || `Untitled Banner ${index + 1}`}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          {/* Active state toggle */}
+                          <label className="flex items-center gap-1.5 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={banner.isActive}
+                              onChange={(e) => updateBannerField(banner.id, 'isActive', e.target.checked)}
+                              className="w-3.5 h-3.5 accent-primary-600 cursor-pointer"
+                            />
+                            <span className="text-[10px] font-bold uppercase text-text-body">Active</span>
+                          </label>
+
+                          {/* Display Order */}
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-text-body font-bold uppercase">Order:</span>
+                            <input 
+                              type="number"
+                              value={banner.order || 0}
+                              onChange={(e) => updateBannerField(banner.id, 'order', parseInt(e.target.value) || 0)}
+                              className="w-12 px-1.5 py-0.5 border border-card-border rounded bg-white text-xs font-bold text-center outline-none"
+                            />
+                          </div>
+
+                          {/* Delete Trigger */}
+                          <button
+                            type="button"
+                            onClick={() => removeBanner(banner.id)}
+                            className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="Remove Banner"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Banner Forms */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-text-title">Banner Title (English)</label>
+                          <input
+                            type="text"
+                            value={banner.titleEn || ''}
+                            onChange={(e) => updateBannerField(banner.id, 'titleEn', e.target.value)}
+                            placeholder="Welcome message title..."
+                            className="w-full px-3 py-2 rounded-lg border border-card-border bg-bg-base text-text-title text-xs outline-none focus:border-primary-500"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-text-title">Banner Title (Malayalam)</label>
+                          <input
+                            type="text"
+                            value={banner.titleMl || ''}
+                            onChange={(e) => updateBannerField(banner.id, 'titleMl', e.target.value)}
+                            placeholder="സ്വാഗതം സന്ദേശം..."
+                            className="w-full px-3 py-2 rounded-lg border border-card-border bg-bg-base text-text-title text-xs outline-none focus:border-primary-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-text-title">Description (English)</label>
+                          <textarea
+                            value={banner.descriptionEn || ''}
+                            onChange={(e) => updateBannerField(banner.id, 'descriptionEn', e.target.value)}
+                            placeholder="English description paragraph..."
+                            rows={2.5}
+                            className="w-full px-3 py-2 rounded-lg border border-card-border bg-bg-base text-text-title text-xs outline-none focus:border-primary-500 resize-none"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-text-title">Description (Malayalam)</label>
+                          <textarea
+                            value={banner.descriptionMl || ''}
+                            onChange={(e) => updateBannerField(banner.id, 'descriptionMl', e.target.value)}
+                            placeholder="മലയാളം വിവരണം..."
+                            rows={2.5}
+                            className="w-full px-3 py-2 rounded-lg border border-card-border bg-bg-base text-text-title text-xs outline-none focus:border-primary-500 resize-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Banner Image Handlers */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-card-border/40 pt-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-text-title uppercase tracking-wider block">Image URL fallback</label>
+                          <input
+                            type="text"
+                            value={banner.image || ''}
+                            onChange={(e) => updateBannerField(banner.id, 'image', e.target.value)}
+                            placeholder="https://images.unsplash.com/..."
+                            className="w-full px-3 py-2 rounded-lg border border-card-border bg-bg-base text-text-title text-xs outline-none focus:border-primary-500"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-text-title uppercase tracking-wider block">Local Upload</label>
+                          {banner.uploadedImage ? (
+                            <div className="border border-card-border rounded-xl p-2.5 bg-bg-base space-y-2 relative">
+                              <div className="aspect-video w-full max-h-32 rounded-lg overflow-hidden border border-card-border relative group bg-white">
+                                <img src={banner.uploadedImage} alt="Banner Preview" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => document.getElementById(`banner-upload-${banner.id}`).click()}
+                                    className="px-2.5 py-1 bg-white text-text-title rounded text-[10px] font-bold shadow-sm"
+                                  >
+                                    Replace
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="flex justify-between items-center text-[9px]">
+                                <span className="text-emerald-600 font-bold flex items-center gap-0.5"><CheckCircle className="w-3 h-3" /> Upload Active</span>
+                                <button type="button" onClick={() => updateBannerField(banner.id, 'uploadedImage', '')} className="text-rose-600 font-bold">Remove Image</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div 
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.currentTarget.classList.add('border-primary-500');
+                              }}
+                              onDragLeave={(e) => {
+                                e.preventDefault();
+                                e.currentTarget.classList.remove('border-primary-500');
+                              }}
+                              onDrop={async (e) => {
+                                e.preventDefault();
+                                e.currentTarget.classList.remove('border-primary-500');
+                                const file = e.dataTransfer.files[0];
+                                if (file) {
+                                  await handleUploadBannerFile(banner.id, file);
+                                }
+                              }}
+                              className="border-2 border-dashed border-card-border rounded-xl p-4 flex flex-col items-center justify-center text-center bg-bg-base hover:bg-card-border/30 transition-all relative min-h-[90px] cursor-pointer"
+                            >
+                              <input 
+                                type="file"
+                                id={`banner-upload-${banner.id}`}
+                                accept="image/png, image/jpeg, image/jpg, image/webp"
+                                onChange={async (e) => {
+                                  const file = e.target.files[0];
+                                  if (file) {
+                                    await handleUploadBannerFile(banner.id, file);
+                                  }
+                                }}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              />
+                              <UploadCloud className="w-5 h-5 text-text-body/50" />
+                              <span className="text-[10px] font-bold text-text-title mt-1">Drag & Drop or Click to Upload</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                     </div>
+                  ))}
+
+                {(formData.heroBanners || []).length === 0 && (
+                  <div className="border border-dashed border-card-border rounded-2xl p-12 text-center text-text-body/60 flex flex-col items-center justify-center gap-2 bg-bg-base/40">
+                    <Layout className="w-8 h-8 text-slate-300" />
+                    <p className="font-semibold text-xs uppercase tracking-wider">No dynamic slider banners defined.</p>
+                    <p className="text-[10px] text-text-body/75">Add a banner using the button above to enable the dynamic homepage slider.</p>
                   </div>
                 )}
               </div>
             </div>
+
           </div>
         )}
 

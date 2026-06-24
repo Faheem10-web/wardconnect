@@ -103,6 +103,8 @@ export default function Home() {
   const [resolvedComplaints, setResolvedComplaints] = useState([]);
   const [loadingFeeds, setLoadingFeeds] = useState(true);
 
+  const [sliderIndex, setSliderIndex] = useState(0);
+
   // Dynamic CMS state
   const [cms, setCms] = useState({
     heroTitleEn: 'Building a Safer, Greener Connected Neighborhood',
@@ -111,6 +113,8 @@ export default function Home() {
     heroDescriptionMl: 'വാർഡ് കണക്ട് നിങ്ങളുടെ വാർഡിലെ പ്രശ്നങ്ങൾ വേഗത്തിൽ പരിഹരിക്കാൻ സഹായിക്കുന്നു. പരാതികൾ സമർപ്പിക്കുക, അവയുടെ പുരോഗതി തത്സമയം നിരീക്ഷിക്കുക.',
     heroImage: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=800',
     heroUploadedImage: '',
+    heroBanners: [],
+    autoSlideDuration: 5,
     wardMemberPhoto: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400',
     wardMemberName: 'Marcus Vance',
     wardMemberRoleEn: 'Ward Member, Ward 4 Representative',
@@ -298,6 +302,44 @@ export default function Home() {
     }
   };
 
+  const activeBanners = (cms.heroBanners || [])
+    .filter(b => b.isActive)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  useEffect(() => {
+    if (activeBanners.length <= 1) {
+      setSliderIndex(0);
+      return;
+    }
+
+    const durationMs = (cms.autoSlideDuration || 5) * 1000;
+    const interval = setInterval(() => {
+      setSliderIndex((prev) => (prev + 1) % activeBanners.length);
+    }, durationMs);
+
+    return () => clearInterval(interval);
+  }, [activeBanners.length, cms.autoSlideDuration]);
+
+  useEffect(() => {
+    if (sliderIndex >= activeBanners.length && activeBanners.length > 0) {
+      setSliderIndex(0);
+    }
+  }, [activeBanners.length, sliderIndex]);
+
+  const currentBanner = activeBanners.length > 0 && sliderIndex < activeBanners.length ? activeBanners[sliderIndex] : null;
+
+  const displayHeroTitle = currentBanner 
+    ? (lang === 'en' ? currentBanner.titleEn : currentBanner.titleMl)
+    : (lang === 'en' ? cms.heroTitleEn : cms.heroTitleMl);
+
+  const displayHeroDescription = currentBanner
+    ? (lang === 'en' ? currentBanner.descriptionEn : currentBanner.descriptionMl)
+    : (lang === 'en' ? cms.heroDescriptionEn : cms.heroDescriptionMl);
+
+  const displayHeroImage = currentBanner
+    ? (currentBanner.uploadedImage || currentBanner.image)
+    : (cms.heroUploadedImage || cms.heroImage);
+
   const currentAnnouncements = announcements.length > 0 ? announcements.slice(0, 3) : MOCK_ANNOUNCEMENTS;
   const currentResolved = resolvedComplaints.length > 0 ? resolvedComplaints.slice(0, 3) : MOCK_RESOLVED;
   const currentEvents = events.length > 0 ? events.slice(0, 2) : MOCK_EVENTS;
@@ -320,23 +362,25 @@ export default function Home() {
               <span>{lang === 'en' ? 'Civic Resolution Hub 2026' : 'സിവിക് റെസല്യൂഷൻ ഹബ് 2026'}</span>
             </motion.div>
 
-            <motion.h1 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl text-text-title tracking-tight leading-[1.1]"
-            >
-              {lang === 'en' ? cms.heroTitleEn : cms.heroTitleMl}
-            </motion.h1>
-
-            <motion.p 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-text-body text-base sm:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0"
-            >
-              {lang === 'en' ? cms.heroDescriptionEn : cms.heroDescriptionMl}
-            </motion.p>
+            <div className="relative min-h-[140px] sm:min-h-[120px] text-left">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={sliderIndex}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-4"
+                >
+                  <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl text-text-title tracking-tight leading-[1.1]">
+                    {displayHeroTitle}
+                  </h1>
+                  <p className="text-text-body text-base sm:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                    {displayHeroDescription}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
             <motion.div 
               initial={{ opacity: 0, y: 15 }}
@@ -371,13 +415,20 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="relative aspect-video sm:aspect-[4/3] rounded-2xl overflow-hidden border border-card-border shadow-lg"
+              className="relative aspect-video sm:aspect-[4/3] rounded-2xl overflow-hidden border border-card-border shadow-lg bg-slate-50"
             >
-              <img 
-                src={cms.heroUploadedImage || cms.heroImage} 
-                alt="Neighborhood improvement visual" 
-                className="w-full h-full object-cover"
-              />
+              <AnimatePresence mode="wait">
+                <motion.img 
+                  key={sliderIndex + displayHeroImage}
+                  src={displayHeroImage} 
+                  alt="Neighborhood improvement visual" 
+                  initial={{ opacity: 0, scale: 1.01 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.99 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full h-full object-cover absolute inset-0"
+                />
+              </AnimatePresence>
             </motion.div>
           </div>
 

@@ -30,6 +30,24 @@ const CmsSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  heroBanners: {
+    type: [{
+      id: { type: String, required: true },
+      titleEn: { type: String, default: '' },
+      titleMl: { type: String, default: '' },
+      descriptionEn: { type: String, default: '' },
+      descriptionMl: { type: String, default: '' },
+      image: { type: String, default: '' },
+      uploadedImage: { type: String, default: '' },
+      order: { type: Number, default: 0 },
+      isActive: { type: Boolean, default: true }
+    }],
+    default: []
+  },
+  autoSlideDuration: {
+    type: Number,
+    default: 5
+  },
   wardMemberPhoto: {
     type: String,
     default: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400'
