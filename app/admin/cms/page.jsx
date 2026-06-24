@@ -71,28 +71,23 @@ export default function AdminCms() {
     }
 
     setSaving(true);
-    setMessage({ text: 'Uploading image to local server...', type: 'info' });
+    setMessage({ text: 'Processing image...', type: 'info' });
 
     try {
-      const data = new FormData();
-      data.append('file', file);
-
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
-        body: data
-      });
-
-      const resData = await res.json();
-      if (res.ok && resData.success) {
-        setFormData(prev => ({ ...prev, heroUploadedImage: resData.url }));
-        setMessage({ text: 'Image uploaded successfully! Remember to Save Settings to persist changes.', type: 'success' });
-      } else {
-        throw new Error(resData.error || 'Upload failed');
-      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFormData(prev => ({ ...prev, heroUploadedImage: reader.result }));
+        setMessage({ text: 'Image processed successfully! Remember to Save Settings to persist changes.', type: 'success' });
+        setSaving(false);
+      };
+      reader.onerror = () => {
+        setMessage({ text: 'Failed to read the image file.', type: 'error' });
+        setSaving(false);
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
       console.error(err);
-      setMessage({ text: `Image upload failed: ${err.message}`, type: 'error' });
-    } finally {
+      setMessage({ text: `Failed to process image: ${err.message}`, type: 'error' });
       setSaving(false);
     }
   };
@@ -105,28 +100,23 @@ export default function AdminCms() {
     }
 
     setSaving(true);
-    setMessage({ text: 'Uploading image to local server...', type: 'info' });
+    setMessage({ text: 'Processing image...', type: 'info' });
 
     try {
-      const data = new FormData();
-      data.append('file', file);
-
-      const res = await fetch('/api/admin/upload', {
-        method: 'POST',
-        body: data
-      });
-
-      const resData = await res.json();
-      if (res.ok && resData.success) {
-        updateBannerField(bannerId, 'uploadedImage', resData.url);
-        setMessage({ text: 'Banner image uploaded successfully! Save Settings to apply.', type: 'success' });
-      } else {
-        throw new Error(resData.error || 'Upload failed');
-      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        updateBannerField(bannerId, 'uploadedImage', reader.result);
+        setMessage({ text: 'Banner image processed successfully! Save Settings to apply.', type: 'success' });
+        setSaving(false);
+      };
+      reader.onerror = () => {
+        setMessage({ text: 'Failed to read the banner image file.', type: 'error' });
+        setSaving(false);
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
       console.error(err);
-      setMessage({ text: `Image upload failed: ${err.message}`, type: 'error' });
-    } finally {
+      setMessage({ text: `Failed to process banner image: ${err.message}`, type: 'error' });
       setSaving(false);
     }
   };
@@ -373,9 +363,7 @@ export default function AdminCms() {
                         <input type="file" onChange={e => {
                           const file = e.target.files[0];
                           if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => setFormData(p => ({ ...p, heroUploadedImage: reader.result }));
-                            reader.readAsDataURL(file);
+                            handleUploadFile(file);
                           }
                         }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                         <UploadCloud className="w-6 h-6 text-text-body/50 mb-1" />
